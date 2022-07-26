@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Text file backups
+**/*.rs.bk
+
+# Build results
+target/
+
+# Testing configs
+*.json
+
+# Code coverage stuff
+*.profraw
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Auto-gen
+.cargo-ok
+
+*.pyc
+__pycache__/
+compiled
+logs
+Cargo.lock
