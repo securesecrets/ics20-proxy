@@ -1,16 +1,10 @@
-use shade_protocol::{
-    snip20,
-    utils::{
-        ExecuteCallback,
-        asset::Contract,
-    },
-    c_std::{
-        from_binary, to_binary, Addr, Binary, Deps, DepsMut, 
-        Env, IbcMsg, IbcQuery, MessageInfo,
-        PortIdResponse, Response, StdError, StdResult,
-        entry_point, Uint128,
-        CosmosMsg,
-    },
+//use asset::Contract;
+use cosmwasm_std::{
+    from_binary, to_binary, Addr, Binary, Deps, DepsMut, 
+    Env, IbcMsg, IbcQuery, MessageInfo,
+    PortIdResponse, Response, StdError, StdResult,
+    entry_point, Uint128,
+    CosmosMsg, WasmMsg,
 };
 
 use crate::amount::{Amount, Snip20Coin};
@@ -19,6 +13,7 @@ use crate::ibc::Ics20Packet;
 use crate::msg::{
     ChannelResponse, ConfigResponse, ExecuteMsg, InitMsg,
     PortResponse, QueryMsg, TransferMsg,
+    Snip20ReceiveMsg, Snip20Transfer,
 };
 use crate::state::{
     increase_channel_balance, Config, ADMIN, CHANNEL_INFO, CHANNEL_STATE,
@@ -92,7 +87,7 @@ pub fn execute_receive(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    wrapper: snip20::Snip20ReceiveMsg,
+    wrapper: Snip20ReceiveMsg,
 ) -> Result<Response, ContractError> {
     //nonpayable(&info)?;
 
@@ -131,19 +126,19 @@ pub fn execute_transfer(
         }
         Some(code_hash) => {
             // Sending 1 token to self to verify code_hash
+            let msg = Snip20Transfer {
+                recipient: env.contract.address.to_string(),
+                amount: Uint128::one(),
+                memo: None,
+                padding: None,
+            };
             messages.push(
-                snip20::ExecuteMsg::Transfer {
-                    recipient: env.contract.address.to_string(),
-                    amount: Uint128::one(),
-                    memo: None,
-                    padding: None,
-                }.to_cosmos_msg(
-                    &Contract {
-                        address: info.sender.clone(),
-                        code_hash: code_hash.clone(),
-                    },
-                    vec![],
-                )?
+                WasmMsg::Execute {
+                    contract_addr: info.sender.clone().to_string(),
+                    code_hash: code_hash.clone(),
+                    msg: to_binary(&msg).unwrap(),
+                    funds: vec![],
+                }
             );
             CODE_HASH.save(deps.storage, info.sender.clone(), &code_hash)?;
 

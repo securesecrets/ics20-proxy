@@ -1,12 +1,35 @@
-
-use shade_protocol::{
-    cosmwasm_schema::cw_serde,
-    snip20::Snip20ReceiveMsg,
-    utils::asset::Contract,
-};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Uint128, Binary, Addr};
 
 use crate::amount::Amount;
 use crate::state::ChannelInfo;
+
+#[cw_serde]
+pub struct Snip20Send {
+    pub recipient: Addr,
+    pub recipient_code_hash: Option<String>,
+    pub amount: Uint128,
+    pub msg: Option<Binary>,
+    pub memo: Option<String>,
+    pub padding: Option<String>,
+}
+
+#[cw_serde]
+pub struct Snip20Transfer {
+    pub recipient: String,
+    pub amount: Uint128,
+    pub memo: Option<String>,
+    pub padding: Option<String>,
+}
+
+#[cw_serde]
+pub struct Snip20ReceiveMsg {
+    pub sender: String,
+    pub from: String,
+    pub amount: Uint128,
+    pub memo: Option<String>,
+    pub msg: Option<Binary>,
+}
 
 #[cw_serde]
 pub struct InitMsg {

@@ -2,10 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use std::convert::TryInto;
-use shade_protocol::{
-    cosmwasm_schema::cw_serde,
-    c_std::{Coin, Uint128},
-};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Coin, Uint128};
 use crate::error::ContractError;
 
 #[cw_serde]

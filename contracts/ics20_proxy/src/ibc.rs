@@ -1,14 +1,12 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use shade_protocol::{
-    c_std::{
-        attr, entry_point, from_binary, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env,
-        IbcBasicResponse, IbcChannel, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
-        IbcEndpoint, IbcOrder, IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg,
-        IbcReceiveResponse, Reply, Response, SubMsg, SubMsgResult, Uint128, WasmMsg,
-    },
-    snip20,
+use cosmwasm_std::{
+    attr, entry_point, from_binary, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env,
+    IbcBasicResponse, IbcChannel, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
+    IbcEndpoint, IbcOrder, IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg,
+    IbcReceiveResponse, Reply, Response, SubMsg, SubMsgResult, Uint128, WasmMsg,
+    Addr,
 };
 
 use crate::amount::Amount;
@@ -18,6 +16,7 @@ use crate::state::{
     CHANNEL_INFO, CONFIG, REPLY_ARGS,
     CODE_HASH,
 };
+use crate::msg::Snip20Send;
 
 pub const ICS20_VERSION: &str = "ics20-1";
 pub const ICS20_ORDERING: IbcOrder = IbcOrder::Unordered;
@@ -258,7 +257,8 @@ fn do_ibc_packet_receive(
         Amount::Snip20(c) => CODE_HASH.may_load(deps.storage, deps.api.addr_validate(&c.address)?)?,
         _ => None,
     };
-    let send = send_amount(to_send, msg.receiver.clone(), code_hash);
+    let receiver = deps.api.addr_validate(&msg.receiver)?;
+    let send = send_amount(to_send, receiver, code_hash);
     let mut submsg = SubMsg::reply_on_error(send, RECEIVE_ID);
     submsg.gas_limit = gas_limit;
 
@@ -360,7 +360,8 @@ fn on_packet_failure(
     };
 
     let gas_limit = check_gas_limit(deps.as_ref(), &to_send)?;
-    let send = send_amount(to_send, msg.sender.clone(), code_hash);
+    let sender = deps.api.addr_validate(&msg.sender)?;
+    let send = send_amount(to_send, sender, code_hash);
     let mut submsg = SubMsg::reply_on_error(send, ACK_FAILURE_ID);
     submsg.gas_limit = gas_limit;
 
@@ -378,20 +379,20 @@ fn on_packet_failure(
     Ok(res)
 }
 
-fn send_amount(amount: Amount, recipient: String, code_hash: Option<String>) -> CosmosMsg {
+fn send_amount(amount: Amount, recipient: Addr, code_hash: Option<String>) -> CosmosMsg {
     match amount {
         Amount::Native(coin) => BankMsg::Send {
-            to_address: recipient,
+            to_address: recipient.to_string(),
             amount: vec![coin],
         }
         .into(),
         Amount::Snip20(coin) => {
-            let msg = snip20::ExecuteMsg::Send {
+            let msg = Snip20Send {
                 recipient,
                 recipient_code_hash: None,
                 amount: coin.amount,
-                memo: None,
                 msg: None,
+                memo: None,
                 padding: None,
             };
             WasmMsg::Execute {

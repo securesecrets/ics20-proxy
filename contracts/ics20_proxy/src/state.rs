@@ -1,8 +1,6 @@
-use shade_protocol::{
-    c_std::{Addr, IbcEndpoint, StdResult, Storage, Uint128},
-    secret_storage_plus::{Item, Map},
-    cosmwasm_schema::cw_serde,
-};
+use cosmwasm_std::{Addr, IbcEndpoint, StdResult, Storage, Uint128};
+use secret_storage_plus::{Item, Map};
+use cosmwasm_schema::cw_serde;
 
 use crate::ContractError;
 

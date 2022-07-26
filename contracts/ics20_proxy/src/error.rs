@@ -1,12 +1,10 @@
 use std::num::TryFromIntError;
 use std::string::FromUtf8Error;
 
-use shade_protocol::{
-    c_std::{StdError, Addr},
-    thiserror::{
-        Error,
-        private::{DisplayAsDisplay, AsDynError},
-    },
+use cosmwasm_std::{StdError, Addr};
+use thiserror::{
+    Error,
+    private::{DisplayAsDisplay, AsDynError},
 };
 //use cw_controllers::AdminError;
 //use cw_utils::PaymentError;
