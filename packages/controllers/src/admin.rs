@@ -1,14 +1,12 @@
 use std::fmt;
 
-use shade_protocol::{
-    c_std::{
-        attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdError, StdResult,
-    },
-    secret_storage_plus::Item,
-    thiserror::Error,
-    serde::{Deserialize, Serialize},
-    schemars::JsonSchema,
+use cosmwasm_std::{
+    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdError, StdResult,
 };
+use secret_storage_plus::Item;
+use thiserror::Error;
+use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
 
 // TODO: should the return values end up in utils, so eg. cw4 can import them as well as this module?
 /// Returned from Admin.query_admin()
