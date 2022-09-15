@@ -125,7 +125,11 @@ pub fn execute_transfer(
             CODE_HASH.load(deps.storage, info.sender.clone())?
         }
         Some(code_hash) => {
-            // Sending 1 token to self to verify code_hash
+            // Code hash previously stored
+            if let Some(c) = CODE_HASH.may_load(deps.storage, info.sender.clone())? {
+                return c;
+            }
+            // Send 1 token to self to verify code_hash
             let msg = Snip20Transfer {
                 recipient: env.contract.address.to_string(),
                 amount: Uint128::one(),
@@ -141,7 +145,6 @@ pub fn execute_transfer(
                 }
             );
             CODE_HASH.save(deps.storage, info.sender.clone(), &code_hash)?;
-
             code_hash
         }
     };
